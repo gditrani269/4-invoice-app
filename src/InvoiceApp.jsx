@@ -1,30 +1,81 @@
-import { useState } from "react";
-import { getInvoice } from "./services/getInvoice"
+import { useEffect, useState } from "react";
+import { getInvoice, calculateTotal } from "./services/getInvoice"
 import { ClientView } from "./components/ClientView";
 import { CompanyView } from "./components/CompanyView";
 import { InvoiceView } from "./components/InvoiceView";
 import { ListItemsView } from "./components/ListItemsView";
 import { TotalView } from "./components/TotalView";
 
+const invoiceInitial = {
+    id: 0,
+    name: '',
+    client: {
+        name: '',
+        lastName: '',
+        address: {
+            country: '',
+            city: '',
+            street: '',
+            number: 0
+        }
+    },
+    company: {
+        name: '',
+        fiscalNumber: 0,
+    },
+    //items va a ser un arreglo ya que una factura puede tener varios items
+    items: []
+}
+
 export const InvoiceApp = () => {
 
-    const { total, id, name, client, company, items: itemsInitial } = getInvoice ();
-    
+    const [ total, setTotal ] = useState (0);
+    const [counter, setCounter] = useState (4);
+
+    const [ invoice, setInvoice ] = useState (invoiceInitial);
+
+    const [items, setItems] = useState([]);
+
     const [formItemsStates, setFormItemsStates] = useState ({
         product: '',
         price: '',
         quantity: '',
     });
-    
+
+    const { id, name, client, company} = invoice;
+
     const { product, price, quantity } = formItemsStates;
 
-    const [items, setItems] = useState(itemsInitial);
+    //solo se ejecuta una vez cuando se crea el componente
+    useEffect(() => {   
+        const data = getInvoice ();
+        console.log (invoice);
+        setInvoice (data);
+        setItems (data.items);
+    }, []);
+    //si el useEffect como segundo parametro tiene solo los [] se ejecuta solo cuando se crea el componente
+    //pero si quiero que se por otro evento se puede hacer.
 
-    const [counter, setCounter] = useState (4);
+    useEffect (() => {
+//        console.log ("El precio cambio");
+    }, [price]); //aca se dispara el evento cada vez que se hace un cambio en price
+
+    useEffect (() => {
+//        console.log ("El FORM cambio");
+    }, [formItemsStates]);//si cambia cualquier campo del formulario se dispara este evento, ya que se pudo el nombre del form.
+
+    useEffect (() => {
+//        console.log ("El counter cambio");
+    }, [counter]);
+
+    useEffect (() => {
+        setTotal (calculateTotal (items))
+//        console.log ("los items cambiaron");
+    }, [items]);
 
     const onInputChange = ( {target: {name, value}}) => {
-        console.log (name)
-        console.log (value)
+//        console.log (name)
+//        console.log (value)
 
         setFormItemsStates ({
             ...formItemsStates,
